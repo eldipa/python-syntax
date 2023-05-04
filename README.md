@@ -21,6 +21,7 @@ Features
   * `@decorator` syntax
   * Class variables such as `self`, `cls`, and `mcs`
   * Operators
+  * Type annotations
 * Highlighting of the following errors:
   * Invalid symbols in source file
   * Invalid numeric constants
@@ -74,6 +75,7 @@ let g:python_highlight_all = 1
 | `g:python_highlight_func_calls`               | Highlight functions calls                                      | `0`     |
 | `g:python_highlight_class_vars`               | Highlight class variables `self`, `cls`, and `mcs`             | `0`     |
 | `g:python_highlight_operators`                | Highlight all operators                                        | `0`     |
+| `g:python_highlight_type_annotations`         | Highlight type annotations                                     | `0`     |
 | `g:python_highlight_all`                      | Enable all highlight options above, except for previously set. | `0`     |
 | `g:python_highlight_file_headers_as_comments` | Highlight shebang and coding headers as comments               | `0`     |
 | `g:python_slow_sync`                          | Disable for slow machines                                      | `1`     |

@@ -9,7 +9,10 @@
 # Keywords.
 
 with break continue del return pass raise global assert lambda yield
-for while if elif else import as try except finally
+for while if elif else import as try except finally and in is not or
+
+lambda: a + 1
+lambda x, y: x + y
 
 self cls mcs
 
@@ -45,6 +48,29 @@ await
 async def Test
 async with
 async for
+
+# Type annotations
+
+def myfunc(a: str, something_other,
+           b: Callable[[str, str], int],
+           c: mypkg.MyType) -> 'runtime_resolved_type':
+    myval: float
+    mygood: Optional[int, Any] = b('wow', 'oops')
+    myarr: Sequence[int] = origarr[aa:bb] + (lambda: x)()
+    mykey = a
+    wow = {
+        mykey: this_should_not_be_type_anno[Any],
+        'b': some_data,
+    }
+    call_with_dict(a={
+        'a': asdf,
+        'b': 'zxcb',
+        mykey: this_should_not_be_type_anno[Any],
+    }, b=mydata['a'])
+    vanilla_lambda = lambda x, y: myval + 1.0
+    call_with_lambda(lambda x, y: myval + 1.0)
+    call_with_slice(mydata[range_start:range_end])
+
 
 # Builtin objects.
 
@@ -150,6 +176,13 @@ ascii()
 bytes()
 exec()
 print()
+
+
+when_we_dont_call = a.float
+float = when_we_dont_call
+
+when_we_call = float(x)
+when_we_call = min(a, b)
 
 # Builtin exceptions and warnings.
 

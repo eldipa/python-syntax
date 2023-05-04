@@ -52,6 +52,7 @@ if s:Enabled('g:python_highlight_all')
     call s:EnableByDefault('g:python_highlight_func_calls')
     call s:EnableByDefault('g:python_highlight_class_vars')
     call s:EnableByDefault('g:python_highlight_operators')
+    call s:EnableByDefault("g:python_highlight_type_annotations")
 endif
 
 if s:Enabled('g:python_highlight_builtins')
@@ -86,8 +87,27 @@ syn keyword pythonException     try except finally
 " we provide a dummy group here to avoid crashing pyrex.vim.
 syn keyword pythonInclude       import
 syn keyword pythonImport        import
+
 syn match pythonRaiseFromStatement      '\<from\>'
 syn match pythonImport          '^\s*\zsfrom\>'
+syn keyword pythonOperator      and in is not or
+syn match pythonLambdaExpr   "\<lambda[^:]*:"he=s+6 contains=@pythonExpression nextgroup=@pythonExpression
+syn region pythonDictSetExpr matchgroup=pythonDictSetExpr start='{' end='}' contains=@pythonExpression
+syn region pythonListSliceExpr matchgroup=pythonListSliceExpr start='\[' end='\]' contains=@pythonExpression
+syn region pythonFuncArgs    matchgroup=pythonFuncArgs    start='(' end=')' contained contains=@pythonTypeExpression,@pythonExpression
+
+if s:Enabled("g:python_highlight_type_annotations")
+  syn match pythonTypeAnno @:\s*['"]\?\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\%(\.\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\)*['"]\?@hs=s+1 display contained contains=pythonType,pythonString nextgroup=pythonTypeUnion,pythonTypeArgs
+  syn match pythonTypeUnion @\s*|\s*['"]\?\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\%(\.\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\)*['"]\?@ display contained contains=pythonType,pythonString nextgroup=pythonTypeUnion
+  syn match pythonTypeAnnoReturn @->\s*['"]\?\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\%(\.\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\)*['"]\?@ display contains=pythonType,pythonString nextgroup=pythonTypeArgs
+  syn region pythonTypeArgs matchgroup=pythonTypeArgs start='\[' end='\]' display contained contains=pythonType,pythonString,pythonTypeArgs
+  syn keyword pythonType Any AnyStr Callable ClassVar Tuple Union Optional Type TypeVar None contained
+  syn keyword pythonType AbstractSet MutableSet Mapping MutableMapping Sequence MutableSequence ByteString Deque List contained
+  syn keyword pythonType Set FrozenSet MappingView KeysView ItemsView ValuesView Awaitable Coroutine AsyncIterable contained
+  syn keyword pythonType AsyncIterator ContextManager Dict DefaultDict Generator AsyncGenerator Text NamedTuple contained
+  syn keyword pythonType Iterable Iterator Reversible SupportsInt SupportsFloat SupportsAbs SupportsRound Container contained
+  syn keyword pythonType Hashable Sized Collection contained
+endif
 
 
 if s:Python2Syntax()
@@ -100,23 +120,42 @@ if s:Python2Syntax()
 else
     syn keyword pythonStatement   as nonlocal
     syn match   pythonStatement   '\v\.@<!<await>'
-    syn match   pythonFunction    '\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*' display contained
+    syn match   pythonFunction    '\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*' nextgroup=pythonFuncArgs display contained
     syn match   pythonClass       '\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*' display contained
     syn match   pythonStatement   '\<async\s\+def\>' nextgroup=pythonFunction skipwhite
     syn match   pythonStatement   '\<async\s\+with\>'
     syn match   pythonStatement   '\<async\s\+for\>'
-    syn cluster pythonExpression contains=pythonStatement,pythonRepeat,pythonConditional,pythonOperator,pythonNumber,pythonHexNumber,pythonOctNumber,pythonBinNumber,pythonFloat,pythonString,pythonFString,pythonRawString,pythonRawFString,pythonBytes,pythonBoolean,pythonNone,pythonSingleton,pythonBuiltinObj,pythonBuiltinFunc,pythonBuiltinType,pythonClassVar
+    syn cluster pythonExpression contains=pythonStatement,pythonRepeat,pythonConditional,pythonOperator,pythonNumber,pythonHexNumber,pythonOctNumber,pythonBinNumber,pythonFloat,pythonString,pythonFString,pythonRawString,pythonRawFString,pythonBytes,pythonBoolean,pythonNone,pythonSingleton,pythonBuiltinObj,pythonBuiltinFunc,pythonBuiltinType,pythonClassVar,pythonFuncArgs,pythonDictSetExpr,pythonListSliceExpr,pythonLambdaExpr
 endif
 
 
 "
 " Operators
 "
-syn keyword pythonOperator      and in is not or
 if s:Enabled('g:python_highlight_operators')
     syn match pythonOperator        '\V=\|-\|+\|*\|@\|/\|%\|&\||\|^\|~\|<\|>\|!=\|:='
 endif
 syn match pythonError           '[$?]\|\([-+@%&|^~]\)\1\{1,}\|\([=*/<>]\)\2\{2,}\|\([+@/%&|^~<>]\)\3\@![-+*@/%&|^~<>]\|\*\*[*@/%&|^<>]\|=[*@/%&|^<>]\|-[+*@/%&|^~<]\|[<!>]\+=\{2,}\|!\{2,}=\+' display
+
+syn cluster pythonTypeExpression contains=pythonTypeAnno,pythonTypeUnion,pythonTypeArgs
+
+syn cluster pythonFExpression contains=
+            \ pythonStatement,
+            \ pythonDictSetExpr,
+            \ pythonListSliceExpr,
+            \ pythonLambdaExpr,
+            \ pythonRepeat,
+            \ pythonConditional,
+            \ pythonOperator,
+            \ pythonNumber,
+            \ pythonHexNumber,
+            \ pythonOctNumber,
+            \ pythonBinNumber,
+            \ pythonFloat,
+            \ pythonString,
+            \ pythonBytes,
+            \ pythonBuiltinObj,
+            \ pythonBuiltinFunc
 
 "
 " Decorators (new in Python 2.4)
@@ -266,7 +305,7 @@ if s:Enabled('g:python_highlight_string_format')
         syn match pythonStrFormat '{\%(\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\|\d\+\)\=\%(\.\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\|\[\%(\d\+\|[^!:\}]\+\)\]\)*\%(![rsa]\)\=\%(:\%({\%(\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\|\d\+\)}\|\%([^}]\=[<>=^]\)\=[ +-]\=#\=0\=\d*,\=\%(\.\d\+\)\=[bcdeEfFgGnosxX%]\=\)\=\)\=}' contained containedin=pythonString,pythonUniString,pythonUniRawString,pythonRawString
     else
         syn match pythonStrFormat "{\%(\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\|\d\+\)\=\%(\.\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\|\[\%(\d\+\|[^!:\}]\+\)\]\)*\%(![rsa]\)\=\%(:\%({\%(\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\|\d\+\)}\|\%([^}]\=[<>=^]\)\=[ +-]\=#\=0\=\d*,\=\%(\.\d\+\)\=[bcdeEfFgGnosxX%]\=\)\=\)\=}" contained containedin=pythonString,pythonRawString
-        syn region pythonStrInterpRegion matchgroup=pythonStrFormat start="{" end="\%(![rsa]\)\=\%(:\%({\%(\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\|\d\+\)}\|\%([^}]\=[<>=^]\)\=[ +-]\=#\=0\=\d*,\=\%(\.\d\+\)\=[bcdeEfFgGnosxX%]\=\)\=\)\=}" extend contained containedin=pythonFString,pythonRawFString contains=pythonStrInterpRegion,@pythonExpression
+        syn region pythonStrInterpRegion matchgroup=pythonStrFormat start="{" end="\%(![rsa]\)\=\%(:\%({\%(\%([^[:cntrl:][:space:][:punct:][:digit:]]\|_\)\%([^[:cntrl:][:punct:][:space:]]\|_\)*\|\d\+\)}\|\%([^}]\=[<>=^]\)\=[ +-]\=#\=0\=\d*,\=\%(\.\d\+\)\=[bcdeEfFgGnosxX%]\=\)\=\)\=}" extend contained containedin=pythonFString,pythonRawFString contains=pythonStrInterpRegion,@pythonExpression,@pythonFExpression
         syn match pythonStrFormat "{{\|}}" contained containedin=pythonFString,pythonRawFString
     endif
 endif
@@ -388,6 +427,33 @@ if s:Enabled('g:python_highlight_builtin_types')
     syn match pythonBuiltinType    '\v\.@<!<%(object|bool|int|float|tuple|str|list|dict|set|frozenset|bytearray|bytes)>'
 endif
 
+# FROM achimnol-master
+#   if s:Enabled("g:python_highlight_builtin_funcs")
+#     if s:Python2Syntax()
+#       syn match pythonBuiltinFunc '\v(\.)@<!\zs<(apply|basestring|buffer|callable|coerce)>\ze\(' nextgroup=pythonFuncArgs
+#       syn match pythonBuiltinFunc '\v(\.)@<!\zs<(execfile|file|help|intern|long|raw_input)>\ze\(' nextgroup=pythonFuncArgs
+#       syn match pythonBuiltinFunc '\v(\.)@<!\zs<(reduce|reload|unichr|unicode|xrange)>\ze\(' nextgroup=pythonFuncArgs
+#       if s:Enabled("g:python_print_as_function")
+#         syn match pythonBuiltinFunc       '\v(\.)@<!\zs<(print)>\ze\(' nextgroup=pythonFuncArgs
+#       endif
+#     else
+#       syn match pythonBuiltinFunc '\v(\.)@<!\zs<(ascii|exec|memoryview|print)\ze\(' nextgroup=pythonFuncArgs
+#     endif
+#     syn match pythonBuiltinFunc   '\v(\.)@<!\zs<(__import__|abs|all|any)>\ze\(' nextgroup=pythonFuncArgs
+#     syn match pythonBuiltinFunc   '\v(\.)@<!\zs<(bin|bool|bytearray|bytes)>\ze\(' nextgroup=pythonFuncArgs
+#     syn match pythonBuiltinFunc   '\v(\.)@<!\zs<(chr|classmethod|cmp|compile|complex)>\ze\(' nextgroup=pythonFuncArgs
+#     syn match pythonBuiltinFunc   '\v(\.)@<!\zs<(delattr|dict|dir|divmod|enumerate|eval)>\ze\(' nextgroup=pythonFuncArgs
+#     syn match pythonBuiltinFunc   '\v(\.)@<!\zs<(filter|float|format|frozenset|getattr)>\ze\(' nextgroup=pythonFuncArgs
+#     syn match pythonBuiltinFunc   '\v(\.)@<!\zs<(globals|hasattr|hash|hex|id)>\ze\(' nextgroup=pythonFuncArgs
+#     syn match pythonBuiltinFunc   '\v(\.)@<!\zs<(input|int|isinstance)>\ze\(' nextgroup=pythonFuncArgs
+#     syn match pythonBuiltinFunc   '\v(\.)@<!\zs<(issubclass|iter|len|list|locals|map|max)>\ze\(' nextgroup=pythonFuncArgs
+#     syn match pythonBuiltinFunc   '\v(\.)@<!\zs<(min|next|object|oct|open|ord)>\ze\(' nextgroup=pythonFuncArgs
+#     syn match pythonBuiltinFunc   '\v(\.)@<!\zs<(pow|property|range)>\ze\(' nextgroup=pythonFuncArgs
+#     syn match pythonBuiltinFunc   '\v(\.)@<!\zs<(repr|reversed|round|set|setattr)>\ze\(' nextgroup=pythonFuncArgs
+#     syn match pythonBuiltinFunc   '\v(\.)@<!\zs<(slice|sorted|staticmethod|str|sum|super|tuple)>\ze\(' nextgroup=pythonFuncArgs
+#     syn match pythonBuiltinFunc   '\v(\.)@<!\zs<(type|vars|zip)>\ze\(' nextgroup=pythonFuncArgs
+#   endif
+
 
 "
 " Builtin exceptions and warnings
@@ -402,7 +468,9 @@ if s:Enabled('g:python_highlight_exceptions')
         let s:exs_re .= '|BlockingIOError|ChildProcessError|ConnectionError|BrokenPipeError|ConnectionAbortedError|ConnectionRefusedError|ConnectionResetError|FileExistsError|FileNotFoundError|InterruptedError|IsADirectoryError|NotADirectoryError|PermissionError|ProcessLookupError|TimeoutError|StopAsyncIteration|ResourceWarning'
     endif
 
-    execute 'syn match pythonExClass ''\v\.@<!\zs<%(' . s:exs_re . ')>'''
+    # Original from master
+    #execute 'syn match pythonExClass ''\v\.@<!\zs<%(' . s:exs_re . ')>'''
+    execute 'syn match pythonExClass ''\v\.@<!\zs<%(' . s:exs_re . ')> nextgroup=pythonFuncArgs'''
     unlet s:exs_re
 endif
 
@@ -430,6 +498,8 @@ if v:version >= 508 || !exists('did_python_syn_inits')
 
     HiLink pythonStatement        Statement
     HiLink pythonRaiseFromStatement   Statement
+    HiLink pythonLambdaExpr       Statement
+
     HiLink pythonImport           Include
     HiLink pythonFunction         Function
     HiLink pythonFunctionCall     Function
@@ -473,6 +543,7 @@ if v:version >= 508 || !exists('did_python_syn_inits')
         HiLink pythonBytesEscapeError   Error
         HiLink pythonFString            String
         HiLink pythonRawFString         String
+        HiLink pythonStrInterpRegion    Special
     endif
 
     HiLink pythonStrFormatting    Special
@@ -503,6 +574,12 @@ if v:version >= 508 || !exists('did_python_syn_inits')
     HiLink pythonExClass          Structure
     HiLink pythonClass            Structure
     HiLink pythonClassVar         Identifier
+
+    HiLink pythonTypeAnno         Optional
+    HiLink pythonTypeUnion        Optional
+    HiLink pythonTypeAnnoReturn   Optional
+    HiLink pythonTypeArgs         Optional
+    HiLink pythonType             Special
 
     delcommand HiLink
 endif

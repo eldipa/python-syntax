@@ -23,6 +23,7 @@ Features
   * `@decorator` syntax
   * Class variables such as `self`, `cls`, and `mcs`
   * Operators
+  * Type annotations
 * Highlighting of the following errors:
   * Invalid symbols in source file
   * Invalid numeric constants
@@ -100,6 +101,9 @@ following command to your `~/.config/nvim/init.vim` or `~/.vimrc`: >
 
 `g:python_highlight_operators` (default `0`)
     Highlight all operators
+
+`g:python_highlight_type_annotations` (default `0`)
+    Highlight type annotations
 
 `g:python_highlight_all` (default `0`)
     Enable all highlight options above, except for previously set.
